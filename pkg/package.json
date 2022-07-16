@@ -1,0 +1,14 @@
+{
+  "name": "boardopt-wasm",
+  "collaborators": [
+    "gunter"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "boardopt_wasm_bg.wasm",
+    "boardopt_wasm.js",
+    "boardopt_wasm.d.ts"
+  ],
+  "browser": "boardopt_wasm.js",
+  "types": "boardopt_wasm.d.ts"
+}

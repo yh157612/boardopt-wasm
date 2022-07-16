@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>boardopt-wasm</title>
+  <link href="https://unpkg.com/sanitize.css" rel="stylesheet" />
+  <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    html,
+    body,
+    pre,
+    code,
+    kbd,
+    samp {
+      font-family: "Press Start 2P", sans-serif;
+    }
+
+    body {
+      padding: 24px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <i class="nes-kirby"></i>
+    <div class="nes-container with-title"
+      x-data="{
+        boards: 'H#S#C.#P#C#M#$.C55.#T#.M#V#',
+        lms1: '1335',
+        lms2: 'CNN*@',
+        min_num_lm: '8',
+        max_num_lm: '10',
+        weights: '{&quot;C&quot;:1, &quot;T&quot;:5}',
+        booster: '100',
+        running: false,
+        result: '',
+        async run() {
+          this.running = true;
+          let boards = this.boards.split('\n').map(x => x.trim()).filter(x => x !== '');
+          await window.worker_obj.boardopt(
+            boards,
+            this.lms1,
+            this.lms2,
+            parseInt(this.min_num_lm, 10),
+            parseInt(this.max_num_lm, 10),
+            JSON.parse(this.weights),
+            parseInt(this.booster, 10)
+          );
+          this.result = (await window.worker_obj.placed) + '\n' + (await window.worker_obj.boosted) + '\n\n' + (await window.worker_obj.score);
+          this.running = false;
+        },
+      }">
+      <p class="title">Boardopt</p>
+      <div class="nes-field">
+        <label for="boards">Boards</label>
+        <textarea id="boards" class="nes-textarea" x-model="boards"></textarea>
+      </div>
+      <div class="nes-field is-inline">
+        <label for="lms1">Landmarks (1)</label>
+        <input type="text" id="lms1" class="nes-input" x-model="lms1">
+      </div>
+      <div class="nes-field is-inline">
+        <label for="lms2">Landmarks (2)</label>
+        <input type="text" id="lms2" class="nes-input" x-model="lms2">
+      </div>
+      <div class="nes-field is-inline">
+        <label for="min_num_lm">Min #landmarks</label>
+        <input type="text" id="min_num_lm" class="nes-input" x-model="min_num_lm">
+      </div>
+      <div class="nes-field is-inline">
+        <label for="max_num_lm">Max #landmarks</label>
+        <input type="text" id="max_num_lm" class="nes-input" x-model="max_num_lm">
+      </div>
+      <div class="nes-field">
+        <label for="weights">Weights</label>
+        <textarea id="weights" class="nes-textarea" x-model="weights"></textarea>
+      </div>
+      <div class="nes-field is-inline">
+        <label for="booster">Booster</label>
+        <input type="text" id="booster" class="nes-input" x-model="booster">
+      </div>
+      <div x-show="!running">
+        <button type="button" class="nes-btn is-primary" @click="run()">Run!</button>
+      </div>
+      <div x-show="running">
+        <i class="nes-octocat animate"></i>
+        <span>Running...</span>
+      </div>
+      <div class="nes-balloon from-left" x-show="result !== ''">
+        <pre x-text="result"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // import init, { greet, boardopt } from "./pkg/boardopt_wasm.js";
+    // init()
+    //   .then(() => {
+    //     // let result = boardopt(
+    //     //   ["H#S#C.#P#C#M#$.C55.#T#.M#V#"],
+    //     //   "1335",
+    //     //   "CNN*@",
+    //     //   8,
+    //     //   10,
+    //     //   {"C": 1.0, "T": 3.0},
+    //     //   300
+    //     // );
+    //     // console.log(result);
+    //     // console.log(result.score);
+    //     // console.log(result.placed);
+    //     // console.log(result.boosted);
+    //     window.boardopt = boardopt;
+    //   });
+    import * as Comlink from "https://unpkg.com/comlink/dist/esm/comlink.mjs";
+    async function init() {
+      const worker = new Worker("./worker.js");
+      // WebWorkers use `postMessage` and therefore work with Comlink.
+      window.worker_obj = Comlink.wrap(worker);
+    }
+    init();
+  </script>
+</body>
+
+</html>
